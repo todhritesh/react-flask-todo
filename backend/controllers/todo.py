@@ -16,9 +16,10 @@ class TodoApi(Resource):
 
 
     def get(self, todo_id=None):
+        todo_collection = mongo.db.todos
 
         if todo_id:
-            todo = Todo.get_by_id(todo_id=todo_id)
+            todo = todo_collection.find_one({"_id": ObjectId(todo_id)})
             if todo:
                 json_data = json.dumps(dict(todo))
                 response = make_response(json_data)
@@ -27,7 +28,7 @@ class TodoApi(Resource):
                 return response
             return {"message": "Todo not found"}, 404
         else:
-            todos = Todo.get_all()
+            todos = list(todo_collection.find())
             serialized_todos = []
             
             for todo in todos:
@@ -61,10 +62,11 @@ class TodoApi(Resource):
         args = self.parser.parse_args()
         title = args["title"]
         completed = args["completed"]
-
         todo_collection = mongo.db.todos
-        result = Todo.update({"_id":todo_id,"title":title,"completed":completed})
-
+        result = todo_collection.update_one(
+            {"_id": ObjectId(todo_id)},
+            {"$set": {"title": title, "completed": completed}}
+        )
         if result.matched_count:
             return {"message": "Todo updated"}, 200
         return {"message": "Todo not found"}, 404

@@ -2,6 +2,7 @@ from db.mongo import mongo
 
 class Todo:
     def __init__(self, title, completed):
+        self._id = None  # Initialize _id as None
         self.title = title
         self.completed = completed
 
@@ -27,7 +28,7 @@ class Todo:
         todo_collection = mongo.db.todos
         return todo_collection.update_one(
             {"_id": self._id},
-            {"$set": self.__dict__}
+            {"$set": {"title": self.title, "completed": self.completed}}
         )
 
     def delete(self):
